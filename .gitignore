@@ -31,3 +31,18 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Development Configuration Files ###
+# Environment-specific properties (keep application.properties for base config)
+application-dev.properties
+application-local.properties
+application-*.properties
+!application.properties
+
+# Development secrets and local env files
+.env
+.env.local
+.env.*.local
+
+# Local database files (if using file-based H2)
+*.db
