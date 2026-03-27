@@ -1,16 +1,22 @@
 package com.duoc.seguridadcalidad.controladores;
 
 import com.duoc.seguridadcalidad.modelos.Usuario;
+import com.duoc.seguridadcalidad.modelos.Receta;
 import com.duoc.seguridadcalidad.repositorios.UserRepository;
+import com.duoc.seguridadcalidad.repositorios.RecetaRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -19,6 +25,9 @@ public class UsuarioController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RecetaRepository recetaRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -71,6 +80,97 @@ public class UsuarioController {
             return ResponseEntity.ok(safeUser);
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/favoritos/{recetaId}")
+    public ResponseEntity<Map<String, String>> agregarRecetaFavorita(
+            @PathVariable Integer recetaId,
+            Authentication authentication) {
+        
+        Map<String, String> response = new HashMap<>();
+        
+        try {
+            String username = authentication.getName();
+            Usuario usuario = userRepository.findByUsername(username);
+            
+            if (usuario == null) {
+                response.put("message", "Usuario no encontrado");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            
+            Optional<Receta> recetaOpt = recetaRepository.findById(recetaId);
+            if (!recetaOpt.isPresent()) {
+                response.put("message", "Receta no encontrada");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            
+            Receta receta = recetaOpt.get();
+            usuario.agregarRecetaFavorita(receta);
+            userRepository.save(usuario);
+            
+            response.put("message", "Receta agregada a favoritos exitosamente");
+            response.put("recetaId", recetaId.toString());
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("message", "Error al agregar receta a favoritos: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @GetMapping("/favoritos")
+    public ResponseEntity<Set<Receta>> obtenerRecetasFavoritas(Authentication authentication) {
+        
+        try {
+            String username = authentication.getName();
+            Usuario usuario = userRepository.findByUsername(username);
+            
+            if (usuario == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            
+            Set<Receta> recetasFavoritas = usuario.getRecetasFavoritas();
+            return ResponseEntity.ok(recetasFavoritas);
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @DeleteMapping("/favoritos/{recetaId}")
+    public ResponseEntity<Map<String, String>> quitarRecetaFavorita(
+            @PathVariable Integer recetaId,
+            Authentication authentication) {
+        
+        Map<String, String> response = new HashMap<>();
+        
+        try {
+            String username = authentication.getName();
+            Usuario usuario = userRepository.findByUsername(username);
+            
+            if (usuario == null) {
+                response.put("message", "Usuario no encontrado");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            
+            Optional<Receta> recetaOpt = recetaRepository.findById(recetaId);
+            if (!recetaOpt.isPresent()) {
+                response.put("message", "Receta no encontrada");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            
+            Receta receta = recetaOpt.get();
+            usuario.quitarRecetaFavorita(receta);
+            userRepository.save(usuario);
+            
+            response.put("message", "Receta quitada de favoritos exitosamente");
+            response.put("recetaId", recetaId.toString());
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("message", "Error al quitar receta de favoritos: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
     public static class RegisterRequest {

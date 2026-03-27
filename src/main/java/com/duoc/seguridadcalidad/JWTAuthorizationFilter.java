@@ -37,6 +37,7 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
     private void setAuthentication(Claims claims) {
 
+        @SuppressWarnings("unchecked")
         List<String> authorities = (List<String>) claims.get("authorities");
 
         UsernamePasswordAuthenticationToken auth =

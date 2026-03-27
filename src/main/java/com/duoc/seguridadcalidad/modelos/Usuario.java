@@ -2,6 +2,8 @@ package com.duoc.seguridadcalidad.modelos;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,6 +23,14 @@ public class Usuario implements UserDetails {
     private String email;
     private String password;
     private Boolean estaAutenticado;
+    
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "usuario_recetas_favoritas",
+        joinColumns = @JoinColumn(name = "usuario_id"),
+        inverseJoinColumns = @JoinColumn(name = "receta_id")
+    )
+    private Set<Receta> recetasFavoritas = new HashSet<>();
 
     public Usuario() {
     }
@@ -71,6 +81,22 @@ public class Usuario implements UserDetails {
 
     public void setEstaAutenticado(Boolean estaAutenticado) {
         this.estaAutenticado = estaAutenticado;
+    }
+    
+    public Set<Receta> getRecetasFavoritas() {
+        return recetasFavoritas;
+    }
+    
+    public void setRecetasFavoritas(Set<Receta> recetasFavoritas) {
+        this.recetasFavoritas = recetasFavoritas;
+    }
+    
+    public void agregarRecetaFavorita(Receta receta) {
+        this.recetasFavoritas.add(receta);
+    }
+    
+    public void quitarRecetaFavorita(Receta receta) {
+        this.recetasFavoritas.remove(receta);
     }
 
     // UserDetails implementation
