@@ -1,8 +1,7 @@
 -- Insertar usuarios de prueba
 INSERT INTO Usuario (username, email, password, esta_autenticado) VALUES 
 ('admin', 'admin@recetas.com', 'password', true),
-('user', 'user@recetas.com', 'password', true),
-('chef', 'chef@recetas.com', 'password', true);
+('user', 'user@recetas.com', 'password', true);
 
 -- Insertar recetas de prueba
 INSERT INTO Receta (titulo, tipo_cocina, pais_origen, dificultad, tiempo_coccion, instrucciones, popularidad, fecha_publicacion) VALUES 

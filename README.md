@@ -210,8 +210,7 @@ La aplicación se inicializa con datos de prueba:
 
 **Usuarios:**
 - `admin / password`
-- `user / password`  
-- `chef / password`
+- `user / password`
 
 **Recetas:**
 - Tacos al Pastor (Mexicana)
