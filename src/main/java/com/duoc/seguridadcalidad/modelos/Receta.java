@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class Receta {
@@ -50,6 +52,14 @@ public class Receta {
     @ElementCollection
     @CollectionTable(name = "receta_ingredientes")
     private List<Ingrediente> ingredientes = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "receta", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comentario> comentarios = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "receta", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Valoracion> valoraciones = new ArrayList<>();
 
     public Receta() {
     }
@@ -184,6 +194,37 @@ public class Receta {
 
     public void setIngredientes(List<Ingrediente> ingredientes) {
         this.ingredientes = ingredientes;
+    }
+
+    public List<Comentario> getComentarios() {
+        return comentarios;
+    }
+
+    public void setComentarios(List<Comentario> comentarios) {
+        this.comentarios = comentarios;
+    }
+
+    public List<Valoracion> getValoraciones() {
+        return valoraciones;
+    }
+
+    public void setValoraciones(List<Valoracion> valoraciones) {
+        this.valoraciones = valoraciones;
+    }
+
+    @JsonProperty("puntajePromedio")
+    public Double getPuntajePromedio() {
+        if (valoraciones == null || valoraciones.isEmpty()) return 0.0;
+        return valoraciones.stream()
+                .filter(v -> v.getPuntaje() != null)
+                .mapToInt(Valoracion::getPuntaje)
+                .average()
+                .orElse(0.0);
+    }
+
+    @JsonProperty("cantidadComentarios")
+    public Integer getCantidadComentarios() {
+        return comentarios == null ? 0 : comentarios.size();
     }
 
     @Override

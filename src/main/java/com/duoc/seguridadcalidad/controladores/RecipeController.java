@@ -9,7 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.duoc.seguridadcalidad.modelos.Receta;
+import com.duoc.seguridadcalidad.modelos.Comentario;
+import com.duoc.seguridadcalidad.modelos.Valoracion;
 import com.duoc.seguridadcalidad.repositorios.RecetaRepository;
+import com.duoc.seguridadcalidad.repositorios.ComentarioRepository;
+import com.duoc.seguridadcalidad.repositorios.ValoracionRepository;
 
 @RestController
 @RequestMapping("/recipes")
@@ -18,6 +22,12 @@ public class RecipeController {
 
     @Autowired
     private RecetaRepository recetaRepository;
+
+    @Autowired
+    private ComentarioRepository comentarioRepository;
+
+    @Autowired
+    private ValoracionRepository valoracionRepository;
 
     @Autowired
     private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
@@ -190,5 +200,82 @@ public class RecipeController {
         receta.setPublicada(publicada);
         Receta updated = recetaRepository.save(receta);
         return ResponseEntity.ok(updated);
+    }
+
+    // --- ENDPOINTS PARA COMENTARIOS ---
+
+    @PostMapping("/{id}/comentarios")
+    public ResponseEntity<Receta> addComentario(@PathVariable Integer id, @RequestBody Comentario payload) {
+        Optional<Receta> optReceta = recetaRepository.findById(id);
+        if (optReceta.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Receta receta = optReceta.get();
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String autor = auth != null && auth.getName() != null ? auth.getName() : "Anonimo";
+
+        if (payload.getTexto() == null || payload.getTexto().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Comentario comentario = new Comentario(payload.getTexto(), autor, receta);
+        receta.getComentarios().add(comentario);
+        Receta updated = recetaRepository.save(receta);
+
+        return ResponseEntity.ok(updated);
+    }
+
+    @GetMapping("/{id}/comentarios")
+    public ResponseEntity<Iterable<Comentario>> getComentarios(@PathVariable Integer id) {
+        Optional<Receta> optReceta = recetaRepository.findById(id);
+        if (optReceta.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(comentarioRepository.findByRecetaOrderByFechaDesc(optReceta.get()));
+    }
+
+    // --- ENDPOINTS PARA VALORACIONES ---
+
+    @PostMapping("/{id}/valoraciones")
+    public ResponseEntity<?> addValoracion(@PathVariable Integer id, @RequestBody Valoracion payload) {
+        Optional<Receta> optReceta = recetaRepository.findById(id);
+        if (optReceta.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Receta receta = optReceta.get();
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String autor = auth != null && auth.getName() != null ? auth.getName() : "Anonimo";
+
+        if (autor.equals(receta.getAutor())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(java.util.Map.of("message", "El autor no puede valorar su propia receta."));
+        }
+
+        Integer puntaje = payload.getPuntaje();
+        if (puntaje == null || puntaje < 0 || puntaje > 5) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", "El puntaje debe estar entre 0 y 5."));
+        }
+
+        Optional<Valoracion> optVal = valoracionRepository.findByRecetaAndAutor(receta, autor);
+        if (optVal.isPresent()) {
+            Valoracion val = optVal.get();
+            val.setPuntaje(puntaje);
+        } else {
+            Valoracion nuevaVal = new Valoracion(puntaje, autor, receta);
+            receta.getValoraciones().add(nuevaVal);
+        }
+        Receta updated = recetaRepository.save(receta);
+
+        return ResponseEntity.ok(updated);
+    }
+
+    @GetMapping("/{id}/valoraciones")
+    public ResponseEntity<Iterable<Valoracion>> getValoraciones(@PathVariable Integer id) {
+        Optional<Receta> optReceta = recetaRepository.findById(id);
+        if (optReceta.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(valoracionRepository.findByReceta(optReceta.get()));
     }
 }
