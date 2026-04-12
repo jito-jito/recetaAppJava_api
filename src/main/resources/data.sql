@@ -4,7 +4,7 @@ INSERT INTO Usuario (username, email, password, esta_autenticado) VALUES
 ('user', 'user@recetas.com', 'password', true);
 
 -- Insertar recetas de prueba
-INSERT INTO Receta (titulo, tipo_cocina, pais_origen, dificultad, tiempo_coccion, instrucciones, popularidad, fecha_publicacion) VALUES 
+INSERT INTO Receta (titulo, tipo_cocina, pais_origen, dificultad, tiempo_coccion, instrucciones, popularidad, fecha_publicacion, autor, publicada) VALUES 
 (
     'Tacos al Pastor', 
     'Mexicana', 
@@ -13,7 +13,9 @@ INSERT INTO Receta (titulo, tipo_cocina, pais_origen, dificultad, tiempo_coccion
     45, 
     'Marinar la carne de cerdo con especias y piña. Asar en trompo. Servir en tortillas con cebolla, cilantro y salsa.',
     4.5,
-    '2024-03-15'
+    '2024-03-15',
+    'admin',
+    true
 ),
 (
     'Paella Valenciana', 
@@ -23,7 +25,9 @@ INSERT INTO Receta (titulo, tipo_cocina, pais_origen, dificultad, tiempo_coccion
     60, 
     'Preparar sofrito con verduras. Añadir arroz, caldo y azafrán. Incorporar pollo, conejo y judías verdes. Cocinar sin revolver.',
     4.8,
-    '2024-03-10'
+    '2024-03-10',
+    'admin',
+    true
 ),
 (
     'Pasta Carbonara', 
@@ -33,7 +37,9 @@ INSERT INTO Receta (titulo, tipo_cocina, pais_origen, dificultad, tiempo_coccion
     20, 
     'Cocinar pasta al dente. En sartén, dorar panceta. Mezclar huevos con queso. Combinar todo fuera del fuego.',
     4.6,
-    '2024-03-20'
+    '2024-03-20',
+    'admin',
+    true
 ),
 (
     'Sushi California Roll', 
@@ -43,7 +49,9 @@ INSERT INTO Receta (titulo, tipo_cocina, pais_origen, dificultad, tiempo_coccion
     90, 
     'Preparar arroz de sushi. Colocar nori, arroz, aguacate y pepino. Enrollar con cangrejo. Cubrir con sésamo.',
     4.7,
-    '2024-03-12'
+    '2024-03-12',
+    'admin',
+    true
 ),
 (
     'Ceviche Peruano', 
@@ -53,7 +61,9 @@ INSERT INTO Receta (titulo, tipo_cocina, pais_origen, dificultad, tiempo_coccion
     30, 
     'Cortar pescado en cubos. Marinar con limón, sal y ají. Añadir cebolla roja, cilantro y camote.',
     4.9,
-    '2024-03-18'
+    '2024-03-18',
+    'admin',
+    true
 );
 
 -- Insertar ingredientes para Tacos al Pastor

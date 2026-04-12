@@ -19,9 +19,15 @@ public class RecipeController {
     @Autowired
     private RecetaRepository recetaRepository;
 
+    @Autowired
+    private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+
+    @Autowired
+    private com.duoc.seguridadcalidad.servicios.FileStorageService fileStorageService;
+
     @GetMapping
     public Iterable<Receta> getAllRecipes() {
-        return recetaRepository.findAll();
+        return recetaRepository.findByPublicadaTrue();
     }
 
     @GetMapping("/{id}")
@@ -37,56 +43,120 @@ public class RecipeController {
             @RequestParam(required = false) String tipoCocina,
             @RequestParam(required = false) String paisOrigen,
             @RequestParam(required = false) Integer tiempoMaximo,
-            @RequestParam(required = false) Double popularidadMinima
-    ) {
-        
+            @RequestParam(required = false) Double popularidadMinima) {
+
         if (titulo != null && !titulo.isBlank()) {
-            return recetaRepository.findByTituloContainingIgnoreCase(titulo);
+            return recetaRepository.findByTituloContainingIgnoreCaseAndPublicadaTrue(titulo);
         }
         if (tipoCocina != null && !tipoCocina.isBlank()) {
-            return recetaRepository.findByTipoCocinaContainingIgnoreCase(tipoCocina);
+            return recetaRepository.findByTipoCocinaContainingIgnoreCaseAndPublicadaTrue(tipoCocina);
         }
         if (paisOrigen != null && !paisOrigen.isBlank()) {
-            return recetaRepository.findByPaisOrigenContainingIgnoreCase(paisOrigen);
+            return recetaRepository.findByPaisOrigenContainingIgnoreCaseAndPublicadaTrue(paisOrigen);
         }
         if (tiempoMaximo != null) {
-            return recetaRepository.findByTiempoCoccionLessThanEqual(tiempoMaximo);
+            return recetaRepository.findByTiempoCoccionLessThanEqualAndPublicadaTrue(tiempoMaximo);
         }
         if (popularidadMinima != null) {
-            return recetaRepository.findByPopularidadGreaterThanEqual(popularidadMinima);
+            return recetaRepository.findByPopularidadGreaterThanEqualAndPublicadaTrue(popularidadMinima);
         }
-        
-        return recetaRepository.findAll();
+
+        return recetaRepository.findByPublicadaTrue();
     }
 
     @GetMapping("/populares")
     public List<Receta> getRecipesByPopularity() {
-        return recetaRepository.findAllByOrderByPopularidadDesc();
+        return recetaRepository.findAllByPublicadaTrueOrderByPopularidadDesc();
     }
 
     @GetMapping("/recientes")
     public List<Receta> getRecentRecipes() {
-        return recetaRepository.findAllByOrderByFechaPublicacionDesc();
+        return recetaRepository.findAllByPublicadaTrueOrderByFechaPublicacionDesc();
     }
 
-    @PostMapping
-    public ResponseEntity<Receta> createRecipe(@RequestBody Receta receta) {
-        if (receta.getIdReceta() != null) {
-            // Avoid allowing the client to set the id manually when creating.
-            receta.setIdReceta(null);
+    @PostMapping(consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Receta> createRecipe(
+            @RequestPart("receta") String recetaJson,
+            @RequestPart(value = "imagenes", required = false) List<org.springframework.web.multipart.MultipartFile> imagenesFiles,
+            @RequestPart(value = "videos", required = false) List<org.springframework.web.multipart.MultipartFile> videosFiles) {
+
+        try {
+            Receta receta = objectMapper.readValue(recetaJson, Receta.class);
+            if (receta.getIdReceta() != null) {
+                receta.setIdReceta(null);
+            }
+
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getName() != null) {
+                receta.setAutor(auth.getName());
+            }
+            receta.setPublicada(false);
+
+            if (imagenesFiles != null) {
+                for (org.springframework.web.multipart.MultipartFile file : imagenesFiles) {
+                    if (!file.isEmpty()) {
+                        String url = fileStorageService.storeFile(file, "imagenes");
+                        receta.getImagenes().add(url);
+                    }
+                }
+            }
+
+            if (videosFiles != null) {
+                for (org.springframework.web.multipart.MultipartFile file : videosFiles) {
+                    if (!file.isEmpty()) {
+                        String url = fileStorageService.storeFile(file, "videos");
+                        receta.getVideos().add(url);
+                    }
+                }
+            }
+
+            Receta saved = recetaRepository.save(receta);
+            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        Receta saved = recetaRepository.save(receta);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Receta> updateRecipe(@PathVariable("id") Integer id, @RequestBody Receta receta) {
+    @PutMapping(value = "/{id}", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Receta> updateRecipe(
+            @PathVariable("id") Integer id,
+            @RequestPart("receta") String recetaJson,
+            @RequestPart(value = "imagenes", required = false) List<org.springframework.web.multipart.MultipartFile> imagenesFiles,
+            @RequestPart(value = "videos", required = false) List<org.springframework.web.multipart.MultipartFile> videosFiles) {
+
         if (!recetaRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        receta.setIdReceta(id);
-        Receta updated = recetaRepository.save(receta);
-        return ResponseEntity.ok(updated);
+
+        try {
+            Receta receta = objectMapper.readValue(recetaJson, Receta.class);
+            receta.setIdReceta(id);
+
+            if (imagenesFiles != null) {
+                for (org.springframework.web.multipart.MultipartFile file : imagenesFiles) {
+                    if (!file.isEmpty()) {
+                        String url = fileStorageService.storeFile(file, "imagenes");
+                        receta.getImagenes().add(url);
+                    }
+                }
+            }
+
+            if (videosFiles != null) {
+                for (org.springframework.web.multipart.MultipartFile file : videosFiles) {
+                    if (!file.isEmpty()) {
+                        String url = fileStorageService.storeFile(file, "videos");
+                        receta.getVideos().add(url);
+                    }
+                }
+            }
+
+            Receta updated = recetaRepository.save(receta);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -96,5 +166,29 @@ public class RecipeController {
         }
         recetaRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/mis-recetas")
+    public Iterable<Receta> getMisRecetas() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        return recetaRepository.findByAutor(auth.getName());
+    }
+
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<Receta> changePublishStatus(@PathVariable("id") Integer id, @RequestParam("publicada") boolean publicada) {
+        Optional<Receta> optional = recetaRepository.findById(id);
+        if (optional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Receta receta = optional.get();
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        
+        if (!auth.getName().equals(receta.getAutor())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
+        receta.setPublicada(publicada);
+        Receta updated = recetaRepository.save(receta);
+        return ResponseEntity.ok(updated);
     }
 }

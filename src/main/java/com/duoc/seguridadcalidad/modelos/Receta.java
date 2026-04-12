@@ -16,26 +16,37 @@ public class Receta {
     private Integer idReceta;
 
     @Column
+    private String autor;
+
+    @Column
+    private boolean publicada = false;
+
+    @Column
     private String titulo;
-    private String tipoCocina; //mediterranea, vegana, japonesa, casera, etc
+    private String tipoCocina; // mediterranea, vegana, japonesa, casera, etc
     private String paisOrigen;
-    
+
     @Enumerated(EnumType.STRING)
-    private Dificultad dificultad; //BAJA, MEDIA, ALTA
-    
-    private Integer tiempoCoccion; //en minutos
-    
+    private Dificultad dificultad; // BAJA, MEDIA, ALTA
+
+    private Integer tiempoCoccion; // en minutos
+
     @Column(length = 2000)
-    private String instrucciones; //paso a paso de la preparacion
-    
-    private Double popularidad; //ranking o numero de visualizaciones
-    private LocalDate fechaPublicacion; //para tener "mas recientes"
-    
+    private String instrucciones; // paso a paso de la preparacion
+
+    private Double popularidad; // ranking o numero de visualizaciones
+    private LocalDate fechaPublicacion; // para tener "mas recientes"
+
     @ElementCollection
     @CollectionTable(name = "receta_imagenes")
     @Column(name = "imagen_url")
-    private List<String> imagenes = new ArrayList<>(); //lista de urls a las fotos de la receta
-    
+    private List<String> imagenes = new ArrayList<>(); // lista de urls a las fotos de la receta
+
+    @ElementCollection
+    @CollectionTable(name = "receta_videos")
+    @Column(name = "video_url")
+    private List<String> videos = new ArrayList<>(); // lista de urls a los videos de la receta
+
     @ElementCollection
     @CollectionTable(name = "receta_ingredientes")
     private List<Ingrediente> ingredientes = new ArrayList<>();
@@ -43,7 +54,9 @@ public class Receta {
     public Receta() {
     }
 
-    public Receta(Integer idReceta, String titulo, String tipoCocina, String paisOrigen, Dificultad dificultad, Integer tiempoCoccion, String instrucciones, Double popularidad, LocalDate fechaPublicacion, List<String> imagenes, Ingrediente... ingredientes) {
+    public Receta(Integer idReceta, String titulo, String tipoCocina, String paisOrigen, Dificultad dificultad,
+            Integer tiempoCoccion, String instrucciones, Double popularidad, LocalDate fechaPublicacion,
+            List<String> imagenes, List<String> videos, String autor, boolean publicada, Ingrediente... ingredientes) {
         this.idReceta = idReceta;
         this.titulo = titulo;
         this.tipoCocina = tipoCocina;
@@ -53,7 +66,10 @@ public class Receta {
         this.instrucciones = instrucciones;
         this.popularidad = popularidad;
         this.fechaPublicacion = fechaPublicacion;
+        this.autor = autor;
+        this.publicada = publicada;
         this.imagenes = imagenes != null ? imagenes : new ArrayList<>();
+        this.videos = videos != null ? videos : new ArrayList<>();
         this.ingredientes = List.of(ingredientes);
     }
 
@@ -130,12 +146,36 @@ public class Receta {
         this.fechaPublicacion = fechaPublicacion;
     }
 
+    public String getAutor() {
+        return autor;
+    }
+
+    public void setAutor(String autor) {
+        this.autor = autor;
+    }
+
+    public boolean isPublicada() {
+        return publicada;
+    }
+
+    public void setPublicada(boolean publicada) {
+        this.publicada = publicada;
+    }
+
     public List<String> getImagenes() {
         return imagenes;
     }
 
     public void setImagenes(List<String> imagenes) {
         this.imagenes = imagenes;
+    }
+
+    public List<String> getVideos() {
+        return videos;
+    }
+
+    public void setVideos(List<String> videos) {
+        this.videos = videos;
     }
 
     public List<Ingrediente> getIngredientes() {
@@ -158,7 +198,10 @@ public class Receta {
                 ", instrucciones='" + instrucciones + '\'' +
                 ", popularidad=" + popularidad +
                 ", fechaPublicacion=" + fechaPublicacion +
+                ", autor='" + autor + '\'' +
+                ", publicada=" + publicada +
                 ", imagenes=" + imagenes +
+                ", videos=" + videos +
                 ", ingredientes=" + ingredientes +
                 '}';
     }

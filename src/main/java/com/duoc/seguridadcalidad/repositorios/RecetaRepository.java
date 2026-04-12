@@ -8,20 +8,24 @@ import java.util.List;
 
 public interface RecetaRepository extends CrudRepository<Receta, Integer> {
 
-    List<Receta> findByTituloContainingIgnoreCase(String titulo);
+    List<Receta> findByTituloContainingIgnoreCaseAndPublicadaTrue(String titulo);
 
-    List<Receta> findByTipoCocinaContainingIgnoreCase(String tipoCocina);
+    List<Receta> findByTipoCocinaContainingIgnoreCaseAndPublicadaTrue(String tipoCocina);
 
-    List<Receta> findByPaisOrigenContainingIgnoreCase(String paisOrigen);
+    List<Receta> findByPaisOrigenContainingIgnoreCaseAndPublicadaTrue(String paisOrigen);
 
-    List<Receta> findByDificultad(Dificultad dificultad);
+    List<Receta> findByDificultadAndPublicadaTrue(Dificultad dificultad);
 
-    List<Receta> findByTiempoCoccionLessThanEqual(Integer tiempoCoccion);
+    List<Receta> findByTiempoCoccionLessThanEqualAndPublicadaTrue(Integer tiempoCoccion);
 
-    List<Receta> findByPopularidadGreaterThanEqual(Double popularidad);
+    List<Receta> findByPopularidadGreaterThanEqualAndPublicadaTrue(Double popularidad);
 
-    List<Receta> findAllByOrderByFechaPublicacionDesc();
+    List<Receta> findAllByPublicadaTrueOrderByFechaPublicacionDesc();
 
-    List<Receta> findAllByOrderByPopularidadDesc();
+    List<Receta> findAllByPublicadaTrueOrderByPopularidadDesc();
+
+    List<Receta> findByPublicadaTrue();
+
+    List<Receta> findByAutor(String autor);
 
 }

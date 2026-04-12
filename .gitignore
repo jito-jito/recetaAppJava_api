@@ -46,3 +46,8 @@ application-*.properties
 
 # Local database files (if using file-based H2)
 *.db
+
+# Directorio de subida de archivos multimedia (imágenes/videos)
+uploads/
+/uploads
+

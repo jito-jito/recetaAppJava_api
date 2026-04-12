@@ -29,9 +29,11 @@ public class WebSecurityConfig {
                         .disable())
                 .authorizeHttpRequests( authz -> authz
                         .requestMatchers(HttpMethod.GET, "/recipes/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/media/**").permitAll()  // Permitir ver fotos/videos
                         .requestMatchers(HttpMethod.POST, Constants.LOGIN_URL).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/register").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()  // Para desarrollo con H2
+                        .requestMatchers("/error").permitAll()  // Permitir forward de errores internos
                         .anyRequest().authenticated())
                 .addFilterAfter(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
 
