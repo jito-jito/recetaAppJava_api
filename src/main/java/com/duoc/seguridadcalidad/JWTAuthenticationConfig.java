@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.duoc.seguridadcalidad.Constants.*;
 
@@ -23,7 +22,7 @@ public class JWTAuthenticationConfig {
         Map<String, Object> claims = new HashMap<>();
         claims.put("authorities", grantedAuthorities.stream()
                 .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList()));
+                .toList()); // S6204: use Stream.toList() instead of collect(Collectors.toList())
 
         String token = Jwts.builder()
                 .claims()

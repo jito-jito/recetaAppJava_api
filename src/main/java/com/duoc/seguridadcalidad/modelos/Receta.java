@@ -1,7 +1,6 @@
 package com.duoc.seguridadcalidad.modelos;
 
-import com.duoc.seguridadcalidad.modelos.Ingrediente;
-import com.duoc.seguridadcalidad.modelos.Dificultad;
+// S1128: same-package imports removed (Ingrediente and Dificultad are in the same package)
 import jakarta.persistence.*;
 
 import java.time.LocalDate;

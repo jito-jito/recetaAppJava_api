@@ -30,7 +30,7 @@ public class Usuario implements UserDetails {
         joinColumns = @JoinColumn(name = "usuario_id"),
         inverseJoinColumns = @JoinColumn(name = "receta_id")
     )
-    private Set<Receta> recetasFavoritas = new HashSet<>();
+    private transient Set<Receta> recetasFavoritas = new HashSet<>(); // S1948: transient
 
     public Usuario() {
     }
@@ -122,7 +122,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return estaAutenticado != null ? estaAutenticado : true;
+        return estaAutenticado == null || estaAutenticado; // S1125: removed unnecessary boolean literal
     }
 
     @Override
